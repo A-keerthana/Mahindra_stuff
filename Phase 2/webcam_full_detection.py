@@ -1,7 +1,13 @@
 # webcam_full_detection.py
+import sys
+import os
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
+
 import cv2
-from object_detection import ObjectDetector
-from video_utils import open_camera, close_windows
+from common.object_detection import ObjectDetector
+from common.video_utils import open_camera, close_windows
 
 def full_webcam_detection():
     """

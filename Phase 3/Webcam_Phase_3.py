@@ -1,4 +1,16 @@
 # webcam_phase3.py
+import sys
+import os
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
+
+
+"""
+Very important here to note that I had lots of issues with the common code that is there, and trying to get it to go into object_detection.py as well as video_utils.py
+for whatever reason init didn't work, but sys path append worked. 
+"""
+
 import cv2
 from Car_Speed_Tracking import SpeedTracker
 from Angle_Calculation import calculate_angle
