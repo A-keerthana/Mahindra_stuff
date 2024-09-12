@@ -1,0 +1,48 @@
+import cv2
+import numpy as np
+
+# Same camera feed setup as above
+camera_urls = [
+    "rtsp://username:password@camera1_ip_address/stream",
+    "rtsp://username:password@camera2_ip_address/stream",
+]
+
+camera_feeds = [cv2.VideoCapture(url) for url in camera_urls]
+
+def combine_feeds(feeds):
+    frames = []
+    for cap in feeds:
+        ret, frame = cap.read()
+        if ret:
+            frames.append(frame)
+        else:
+            frames.append(np.zeros((480, 640, 3), dtype=np.uint8))  # Black frame if feed fails
+
+    # Create a 2x2 grid layout for camera feeds
+    top_row = np.hstack(frames[:2])  # Combine first two feeds horizontally
+    if len(frames) > 2:
+        bottom_row = np.hstack(frames[2:4])  # Combine next two feeds
+    else:
+        bottom_row = np.zeros_like(top_row)  # Empty row if less than 4 feeds
+
+    # Combine top and bottom rows
+    grid = np.vstack([top_row, bottom_row])
+    return grid
+
+def display_grid(feeds):
+    while True:
+        grid = combine_feeds(feeds)
+        cv2.imshow('Camera Grid', grid)
+
+        # Exit on pressing 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Release camera feeds
+    for cap in feeds:
+        cap.release()
+
+    cv2.destroyAllWindows()
+
+# Call to display the grid
+display_grid(camera_feeds)
