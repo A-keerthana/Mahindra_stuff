@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Monitoring Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Real-Time Car Monitoring Dashboard</h1>
+    <div id="car-data">
+        <!-- Real-time data will be displayed here -->
+    </div>
+
+    <script>
+        // Initialize Socket.IO client
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Listen for car data from the server
+        socket.on('car_data', function(carData) {
+            var carDataDiv = document.getElementById('car-data');
+            carDataDiv.innerHTML = '';
+
+            // Display the car data
+            for (var i = 0; i < carData.length; i++) {
+                carDataDiv.innerHTML += `<p>Car ${i}: Speed = ${carData[i].speed} m/s, Angle = ${carData[i].angle}°, Stability = ${carData[i].stability}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

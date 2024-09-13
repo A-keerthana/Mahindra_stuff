@@ -1,7 +1,6 @@
-# video_phase3.py
 import cv2
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, simpledialog
 from Car_Speed_Tracking import SpeedTracker
 from Angle_Calculation import calculate_angle
 from Skid_Detection import detect_skid
@@ -18,11 +17,29 @@ def choose_video_file():
     video_path = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4 *.avi *.mov")])
     return video_path
 
-def process_video(video_path):
+def get_output_video_filename():
+    """
+    Opens a dialog to let the user specify the name and location of the output video.
+    """
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    output_file = filedialog.asksaveasfilename(defaultextension=".mp4", filetypes=[("MP4 files", "*.mp4"), ("AVI files", "*.avi")])
+    return output_file
+
+def process_video(video_path, output_path):
     cap = cv2.VideoCapture(video_path)
     detector = ObjectDetector()  # Initialize object detection model
     speed_tracker = SpeedTracker()
     stability_tracker = StabilityTracker()
+
+    # Get the original video frame width, height, and frames per second (fps)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    # Initialize the VideoWriter for saving the output video
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Use mp4 codec
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -34,12 +51,11 @@ def process_video(video_path):
         annotated_frame = detector.annotate_frame(frame, results)
 
         # Placeholder: Assuming we get car positions from object detection results
-        # (You would integrate the actual object detection results here)
         car_positions = [(100, 200), (300, 400)]  # Example car positions
 
         # Process each car
         for car_id, car_pos in enumerate(car_positions):
-            speed = speed_tracker.calculate_speed(car_id, car_pos, fps=30, conversion_factor=0.05)
+            speed = speed_tracker.calculate_speed(car_id, car_pos, fps=fps, conversion_factor=0.05)
             print(f"Car {car_id}: Speed = {speed} m/s")
 
             # Assuming you have front and rear points for angle calculation
@@ -58,13 +74,19 @@ def process_video(video_path):
         # Display the annotated frame
         cv2.imshow('Video Phase 3', annotated_frame)
 
+        # Write the annotated frame to the output video file
+        out.write(annotated_frame)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
+    out.release()  # Release the VideoWriter
     close_windows()
 
 if __name__ == "__main__":
     video_path = choose_video_file()
     if video_path:
-        process_video(video_path)
+        output_path = get_output_video_filename()
+        if output_path:
+            process_video(video_path, output_path)
