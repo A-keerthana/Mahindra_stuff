@@ -28,7 +28,7 @@ def get_output_video_filename():
 
 def process_video(video_path, output_path):
     cap = cv2.VideoCapture(video_path)
-    detector = ObjectDetector()  # Initialize object detection model
+    detector = ObjectDetector()  # Initialize object detection model to detect only people and cars
     speed_tracker = SpeedTracker()
     stability_tracker = StabilityTracker()
 
@@ -46,25 +46,31 @@ def process_video(video_path, output_path):
         if not ret:
             break
 
-        # Detect cars in the frame
+        # Detect people and cars in the frame
         results = detector.detect_objects(frame)
         annotated_frame = detector.annotate_frame(frame, results)
 
-        # Placeholder: Assuming we get car positions from object detection results
-        car_positions = [(100, 200), (300, 400)]  # Example car positions
+        # Extract car and person positions from detection results
+        car_positions = []
+        for result in results:
+            # Assuming each result contains the bounding box as [x1, y1, x2, y2]
+            x1, y1, x2, y2 = result.xyxy
+            center_x = int((x1 + x2) / 2)
+            center_y = int((y1 + y2) / 2)
+            car_positions.append((center_x, center_y))
 
-        # Process each car
+        # Process each detected person or car
         for car_id, car_pos in enumerate(car_positions):
             speed = speed_tracker.calculate_speed(car_id, car_pos, fps=fps, conversion_factor=0.05)
             print(f"Car {car_id}: Speed = {speed} m/s")
 
-            # Assuming you have front and rear points for angle calculation
-            front_point, rear_point = (100, 150), (90, 180)
+            # Assuming you have front and rear points for angle calculation (these would be specific to the car/person detected)
+            front_point, rear_point = (car_pos[0] + 10, car_pos[1]), (car_pos[0] - 10, car_pos[1])
             angle = calculate_angle(front_point, rear_point)
             print(f"Car {car_id}: Angle = {angle} degrees")
 
             # Detect skid
-            previous_angle = 0  # Placeholder
+            previous_angle = 0  # Placeholder for previous angle (could be tracked over time)
             skid = detect_skid(angle, previous_angle)
             print(f"Car {car_id}: Skid = {skid}")
 
